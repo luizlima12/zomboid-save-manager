@@ -1,5 +1,9 @@
 # Zomboid Save Manager
 
+<p align="center">
+  <img src="./public/images/project-zomboid-icon.png" alt="Project Zomboid logo" width="128" />
+</p>
+
 A private, browser-based tool for inspecting, backing up, and recovering Project Zomboid saves. Save files are processed entirely on the user's device and are never uploaded to the application server.
 
 ## Live application
