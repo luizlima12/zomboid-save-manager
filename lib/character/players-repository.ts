@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 
 import { AppError } from "@/lib/errors";
 import type {
@@ -40,15 +40,15 @@ function createCharacterId(
 }
 
 export class PlayersRepository {
-  private readonly database: Database.Database;
+  private readonly database: DatabaseSync;
 
   constructor(databasePath: string, readonly: boolean) {
-    this.database = new Database(databasePath, {
-      readonly,
-      fileMustExist: true,
+    this.database = new DatabaseSync(databasePath, {
+      readOnly: readonly,
       timeout: 5_000,
+      enableForeignKeyConstraints: false,
     });
-    this.database.pragma("busy_timeout = 5000");
+    this.database.exec("PRAGMA busy_timeout = 5000");
   }
 
   close(): void {
@@ -56,9 +56,9 @@ export class PlayersRepository {
   }
 
   validateIntegrity(): void {
-    const rows = this.database.pragma("integrity_check") as Array<
-      Record<string, unknown>
-    >;
+    const rows = this.database
+      .prepare("PRAGMA integrity_check")
+      .all() as Array<Record<string, unknown>>;
     const values = rows.flatMap((row) => Object.values(row));
     if (values.length !== 1 || values[0] !== "ok") {
       throw new AppError(
@@ -74,7 +74,7 @@ export class PlayersRepository {
       (
         this.database
           .prepare("SELECT name FROM sqlite_master WHERE type = 'table'")
-          .all() as TableNameRow[]
+          .all() as unknown as TableNameRow[]
       ).map((row) => row.name),
     );
 
@@ -84,7 +84,7 @@ export class PlayersRepository {
         (
           this.database
             .prepare(`PRAGMA table_info(${candidate.table})`)
-            .all() as TableInfoRow[]
+            .all() as unknown as TableInfoRow[]
         ).map((row) => row.name),
       );
       return columns.has("name") && columns.has("isDead");
@@ -130,7 +130,8 @@ export class PlayersRepository {
       `UPDATE ${table} SET isDead = 0 WHERE rowid = ? AND isDead <> 0`,
     );
 
-    const transaction = this.database.transaction(() => {
+    this.database.exec("BEGIN IMMEDIATE");
+    try {
       this.validateIntegrity();
       const before = readStatement.get(character.rowId) as
         | { isDead: unknown }
@@ -161,9 +162,11 @@ export class PlayersRepository {
           500,
         );
       }
-    });
-
-    transaction.immediate();
+      this.database.exec("COMMIT");
+    } catch (error) {
+      if (this.database.isTransaction) this.database.exec("ROLLBACK");
+      throw error;
+    }
     this.validateIntegrity();
   }
 
@@ -175,7 +178,7 @@ export class PlayersRepository {
       .prepare(
         `SELECT rowid AS rowId, name, isDead FROM ${schema.table} ORDER BY rowid`,
       )
-      .all() as CharacterRow[];
+      .all() as unknown as CharacterRow[];
 
     return rows.map((row) => ({
       id: createCharacterId(saveId, schema.table, row.rowId),

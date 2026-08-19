@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { listBackups } from "@/lib/backup/list-backups";
@@ -35,7 +35,7 @@ describe("character recovery", () => {
     await mkdir(savePath, { recursive: true });
     await writeFile(path.join(savePath, "map_ver.bin"), "fixture", "utf8");
 
-    const database = new Database(databasePath);
+    const database = new DatabaseSync(databasePath);
     database.exec(`
       CREATE TABLE localPlayers (
         id INTEGER PRIMARY KEY,
@@ -63,9 +63,8 @@ describe("character recovery", () => {
   });
 
   function readDeadState(databaseFile = databasePath): number {
-    const database = new Database(databaseFile, {
-      readonly: true,
-      fileMustExist: true,
+    const database = new DatabaseSync(databaseFile, {
+      readOnly: true,
     });
     try {
       return (
@@ -136,7 +135,7 @@ describe("character recovery", () => {
   });
 
   it("refuses a character that is already alive", async () => {
-    const database = new Database(databasePath);
+    const database = new DatabaseSync(databasePath);
     database.prepare("UPDATE localPlayers SET isDead = 0").run();
     database.close();
     const { save, character } = await getTarget();
@@ -229,7 +228,7 @@ describe("character recovery", () => {
   });
 
   it("rejects unknown and invalid players.db schemas", async () => {
-    const database = new Database(databasePath);
+    const database = new DatabaseSync(databasePath);
     database.exec("DROP TABLE localPlayers; CREATE TABLE unknown (id INTEGER)");
     database.close();
     const [save] = await listSaves(config);
@@ -253,7 +252,7 @@ describe("character recovery", () => {
   });
 
   it("supports hosted characters stored in networkPlayers", async () => {
-    const database = new Database(databasePath);
+    const database = new DatabaseSync(databasePath);
     database.exec(`
       DROP TABLE localPlayers;
       CREATE TABLE networkPlayers (

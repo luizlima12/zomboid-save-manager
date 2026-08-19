@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 
 const fixtureRoot = path.resolve("fixtures", "demo-user");
 const databasePath = path.resolve(
@@ -17,7 +17,7 @@ if (!databasePath.startsWith(`${fixtureRoot}${path.sep}`)) {
 }
 
 await mkdir(path.dirname(databasePath), { recursive: true });
-const database = new Database(databasePath);
+const database = new DatabaseSync(databasePath);
 try {
   database.exec(`
     DROP TABLE IF EXISTS localPlayers;
