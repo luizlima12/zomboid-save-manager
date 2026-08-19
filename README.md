@@ -2,6 +2,8 @@
 
 Aplicação local para Windows que detecta saves do Project Zomboid e cria backups verificados sem expor caminhos de filesystem às operações do navegador.
 
+Na Vercel, a aplicação entra automaticamente no modo web privado: o usuário seleciona uma pasta ou ZIP e todo processamento acontece no próprio navegador, sem upload ou persistência de dados pessoais.
+
 ## Executar
 
 ```powershell
@@ -38,6 +40,14 @@ Abra [http://localhost:3000](http://localhost:3000). Na primeira execução, a a
 O mod confere mundo e nome do personagem, executa uma única vez e é desativado pela aplicação após o marcador de conclusão aparecer em `console.txt`.
 
 O launcher geral e a tela de restore de backups completos continuam reservados para os próximos marcos. O rollback da recuperação já está disponível e restaura o `players.db` preservado antes da operação.
+
+## Modo web privado
+
+- Selecione a pasta individual da partida ou importe um ZIP.
+- O save precisa conter `players.db` e `map_ver.bin`.
+- `sql.js` executa a validação e recuperação em WebAssembly dentro de um worker.
+- Backups e recuperações são exportados como novos ZIPs; o original nunca é alterado.
+- Nenhum arquivo, nome de personagem ou histórico é enviado ou persistido na Vercel.
 
 ## Verificar
 

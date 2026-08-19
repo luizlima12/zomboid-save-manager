@@ -4,6 +4,7 @@ import { errorResponse, successResponse } from "@/lib/api/response";
 import { readConfig } from "@/lib/config/config";
 import { recoverCharacter } from "@/lib/recovery/recover-character";
 import { listRecoveryHistory } from "@/lib/recovery/recovery-history";
+import { assertLocalRuntime } from "@/lib/runtime/runtime-mode";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ const recoverySchema = z.object({
 
 export async function GET(request: Request) {
   try {
+    assertLocalRuntime();
     const saveId = new URL(request.url).searchParams.get("saveId");
     const history = await listRecoveryHistory();
     return successResponse(
@@ -30,6 +32,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    assertLocalRuntime();
     const input = recoverySchema.parse(await request.json());
     const config = await readConfig();
     return successResponse(

@@ -9,6 +9,8 @@ export interface ApiResponse<T> {
   error?: ApiError;
 }
 
+export type RuntimeMode = "local" | "web";
+
 export interface ZomboidSave {
   id: string;
   name: string;

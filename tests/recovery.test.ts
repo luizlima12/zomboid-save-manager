@@ -10,7 +10,7 @@ import { recoverCharacter } from "@/lib/recovery/recover-character";
 import { listRecoveryHistory } from "@/lib/recovery/recovery-history";
 import { rollbackRecovery } from "@/lib/recovery/rollback-recovery";
 import { synchronizeRecoveryStatus } from "@/lib/recovery/recovery-status";
-import { buildRecoveryLua } from "@/lib/recovery/install-recovery-script";
+import { buildRecoveryLua } from "@/lib/recovery/recovery-lua";
 import { listSaves } from "@/lib/saves/list-saves";
 import type { AppConfig } from "@/lib/types";
 

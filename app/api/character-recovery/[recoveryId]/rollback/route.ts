@@ -3,6 +3,7 @@ import { z } from "zod";
 import { errorResponse, successResponse } from "@/lib/api/response";
 import { readConfig } from "@/lib/config/config";
 import { rollbackRecovery } from "@/lib/recovery/rollback-recovery";
+import { assertLocalRuntime } from "@/lib/runtime/runtime-mode";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,6 +15,7 @@ export async function POST(
   context: { params: Promise<{ recoveryId: string }> },
 ) {
   try {
+    assertLocalRuntime();
     const { recoveryId } = await context.params;
     const config = await readConfig();
     return successResponse(

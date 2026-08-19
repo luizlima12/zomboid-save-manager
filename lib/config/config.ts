@@ -6,6 +6,7 @@ import { readJsonFile, writeJsonAtomic } from "@/lib/filesystem/atomic-json";
 import { appConfigSchema } from "@/lib/config/schema";
 import { AppError } from "@/lib/errors";
 import { isPathInside } from "@/lib/security/safe-path";
+import { assertLocalRuntime } from "@/lib/runtime/runtime-mode";
 import type { AppConfig } from "@/lib/types";
 
 export interface AppDirectories {
@@ -72,6 +73,7 @@ export async function ensureAppDirectories(config: AppConfig): Promise<void> {
 }
 
 export async function readConfig(): Promise<AppConfig> {
+  assertLocalRuntime();
   const directories = getAppDirectories();
   const defaults = getDefaultConfig();
   let shouldWriteDefaults = false;
@@ -97,6 +99,7 @@ export async function readConfig(): Promise<AppConfig> {
 }
 
 export async function writeConfig(config: AppConfig): Promise<AppConfig> {
+  assertLocalRuntime();
   const parsed = appConfigSchema.parse(config);
   validateConfigPaths(parsed);
   await ensureAppDirectories(parsed);
