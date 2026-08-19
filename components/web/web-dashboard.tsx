@@ -25,6 +25,11 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  BrandIcon,
+  BrandIdentity,
+} from "@/components/branding/brand-identity";
+import { DeveloperCredit } from "@/components/branding/developer-credit";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
@@ -147,13 +152,7 @@ function WebSidebar({
         )}
       >
         <div className="flex h-[76px] items-center justify-between border-b border-border px-5">
-          <div className="flex items-center gap-3">
-            <div className="technical-grid grid size-10 place-items-center border border-primary/40 text-sm text-primary">ZS</div>
-            <div>
-              <div className="text-[12px] tracking-[0.14em]">ZOMBOID</div>
-              <div className="text-[10px] tracking-[0.18em] text-muted-foreground">SAVE MANAGER</div>
-            </div>
-          </div>
+          <BrandIdentity />
           <button aria-label="Fechar menu" className="text-muted-foreground lg:hidden" onClick={onClose}>
             <X className="size-4" />
           </button>
@@ -573,7 +572,7 @@ export function WebDashboard() {
       <WebSidebar view={view} open={menuOpen} onClose={() => setMenuOpen(false)} onNavigate={navigate} />
       <div className="lg:pl-[248px]">
         <header className="sticky top-0 z-20 flex h-[76px] items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur sm:px-7 lg:px-9">
-          <div className="flex items-center gap-4"><button aria-label="Abrir menu" className="text-muted-foreground lg:hidden" onClick={() => setMenuOpen(true)}><Menu className="size-5" /></button><div><h1 className="text-[13px] uppercase tracking-[0.16em]">{titles[view][0]}</h1><p className="mt-1 hidden text-[9px] uppercase tracking-[0.14em] text-muted-foreground sm:block">{titles[view][1]}</p></div></div>
+          <div className="flex items-center gap-4"><button aria-label="Abrir menu" className="text-muted-foreground lg:hidden" onClick={() => setMenuOpen(true)}><Menu className="size-5" /></button><BrandIcon className="lg:hidden" size={30} /><div><h1 className="text-[13px] uppercase tracking-[0.16em]">{titles[view][0]}</h1><p className="mt-1 hidden text-[9px] uppercase tracking-[0.14em] text-muted-foreground sm:block">{titles[view][1]}</p></div></div>
           <div className="flex items-center gap-3"><Button size="sm" variant="ghost" onClick={selectDirectory} disabled={busy}><FolderOpen className="size-3.5" /><span className="hidden sm:inline">{workspace ? "Selecionar outro save" : "Selecionar save"}</span></Button><div className="hidden border-l border-border pl-4 text-right sm:block"><p className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground">Processamento privado</p><p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-success">● Nenhum arquivo enviado</p></div></div>
         </header>
         <main className="mx-auto max-w-[1600px] p-4 sm:p-7 lg:p-9">
@@ -581,7 +580,7 @@ export function WebDashboard() {
           <ProgressPanel progress={progress} />
           {workspace ? connectedContent() : <ConnectSave busy={busy} onDirectory={selectDirectory} onDirectoryFallback={() => directoryInputRef.current?.click()} onZip={() => zipInputRef.current?.click()} onHelp={() => setHelpOpen(true)} />}
         </main>
-        <footer className="mx-4 flex flex-col gap-2 border-t border-border py-5 text-[9px] uppercase tracking-[0.14em] text-muted-foreground sm:mx-7 sm:flex-row sm:justify-between lg:mx-9"><span>ZSM · Browser private runtime</span><span>Original read-only · Session ephemeral</span></footer>
+        <footer className="mx-4 flex flex-col gap-2 border-t border-border py-5 text-[9px] uppercase tracking-[0.14em] text-muted-foreground sm:mx-7 sm:flex-row sm:justify-between lg:mx-9"><span>ZSM · Browser private runtime</span><DeveloperCredit /></footer>
       </div>
 
       <input ref={directoryInputRef} type="file" multiple className="hidden" onChange={(event) => handleDirectoryFiles(event.target.files)} {...({ webkitdirectory: "", directory: "" } as React.InputHTMLAttributes<HTMLInputElement>)} />

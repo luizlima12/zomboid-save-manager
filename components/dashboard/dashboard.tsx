@@ -6,7 +6,6 @@ import {
   Activity,
   Archive,
   ChevronRight,
-  Clock3,
   Database,
   FolderCog,
   HardDrive,
@@ -22,6 +21,11 @@ import {
 } from "lucide-react";
 
 import { apiRequest } from "@/components/dashboard/api-client";
+import {
+  BrandIcon,
+  BrandIdentity,
+} from "@/components/branding/brand-identity";
+import { DeveloperCredit } from "@/components/branding/developer-credit";
 import { RecoveryPanel } from "@/components/recovery/recovery-panel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -107,17 +111,7 @@ function Sidebar({
         )}
       >
         <div className="flex h-[76px] items-center justify-between border-b border-border px-5">
-          <div className="flex items-center gap-3">
-            <div className="technical-grid grid size-10 place-items-center border border-primary/40 text-sm text-primary">
-              ZS
-            </div>
-            <div>
-              <div className="text-[12px] tracking-[0.14em]">ZOMBOID</div>
-              <div className="text-[10px] tracking-[0.18em] text-muted-foreground">
-                SAVE MANAGER
-              </div>
-            </div>
-          </div>
+          <BrandIdentity />
           <button aria-label="Fechar menu" className="text-muted-foreground lg:hidden" onClick={onClose}>
             <X className="size-4" />
           </button>
@@ -650,6 +644,7 @@ export function Dashboard() {
             <button aria-label="Abrir menu" className="text-muted-foreground lg:hidden" onClick={() => setMenuOpen(true)}>
               <Menu className="size-5" />
             </button>
+            <BrandIcon className="lg:hidden" size={30} />
             <div>
               <h1 className="text-[13px] uppercase tracking-[0.16em]">{pageTitles[view][0]}</h1>
               <p className="mt-1 hidden text-[9px] uppercase tracking-[0.14em] text-muted-foreground sm:block">
@@ -768,7 +763,7 @@ export function Dashboard() {
 
         <footer className="mx-4 flex flex-col gap-2 border-t border-border py-5 text-[9px] uppercase tracking-[0.14em] text-muted-foreground sm:mx-7 sm:flex-row sm:justify-between lg:mx-9">
           <span>ZSM · Local filesystem only</span>
-          <span className="flex items-center gap-2"><Clock3 className="size-3" /> Milestone 02 · Character recovery</span>
+          <DeveloperCredit />
         </footer>
       </div>
 
