@@ -1,55 +1,116 @@
 # Zomboid Save Manager
 
-Aplicação local para Windows que detecta saves do Project Zomboid e cria backups verificados sem expor caminhos de filesystem às operações do navegador.
+A private, browser-based tool for inspecting, backing up, and recovering Project Zomboid saves. Save files are processed entirely on the user's device and are never uploaded to the application server.
 
-Na Vercel, a aplicação entra automaticamente no modo web privado: o usuário seleciona uma pasta ou ZIP e todo processamento acontece no próprio navegador, sem upload ou persistência de dados pessoais.
+## Live application
 
-## Executar
+**[Open Zomboid Save Manager on Vercel](https://zomboid-save-manager.vercel.app)**
+
+## Features
+
+- Import an individual Project Zomboid save folder or a ZIP archive.
+- Validate `players.db` integrity locally with SQLite compiled to WebAssembly.
+- Detect characters stored in `localPlayers` and `networkPlayers`.
+- Display each character's name, source, life status, and last saved position when available.
+- Export a complete backup as a new ZIP without modifying the original save.
+- Recover dead characters using one of two recovery modes.
+- Generate SHA-256 hashes and a manifest for every exported package.
+- Process SQLite and ZIP operations in the browser, including inside a dedicated Web Worker.
+
+## Privacy
+
+The web application is designed so that save data stays on the user's computer:
+
+- No save file is uploaded to Vercel or any other server.
+- No character name, save history, or recovery history is persisted remotely.
+- The selected folder permission exists only for the current browser session.
+- The original save is opened for reading and remains unchanged.
+- Backups and recovered saves are generated as separate ZIP files.
+
+Vercel only serves the application assets. File inspection, SQLite queries, hashing, recovery, and compression run locally in the browser.
+
+## How to use
+
+1. Open the [live application](https://zomboid-save-manager.vercel.app).
+2. Select the folder for one specific save, or import a ZIP containing that save.
+3. Wait for the application to validate `players.db` and scan its characters.
+4. Review the detected save and character information.
+5. Export a backup, or choose a dead character to create a recovery package.
+6. Keep the original save in a safe location before installing any generated package.
+
+On Windows, saves are usually stored under:
+
+```text
+C:\Users\YOUR_USER\Zomboid\Saves\<GAME_MODE>\<SAVE_NAME>
+```
+
+Select `<SAVE_NAME>`, not the parent `Saves` directory. A compatible save must contain both `players.db` and `map_ver.bin`.
+
+## Character recovery
+
+Two recovery modes are available:
+
+### Revive as-is
+
+Creates a copy of the save in which the selected character's `isDead` value is reset. All other serialized character data remains unchanged.
+
+### Full-health recovery
+
+Creates the recovered save and includes the one-shot **Zomboid Save Manager Recovery** mod. When the recovered save is loaded, the mod restores health and removes wounds and infection for the selected character.
+
+Every recovery package includes:
+
+- the recovered save under `save/<SAVE_NAME>`;
+- `manifest.json` with input and output hashes;
+- `README_RECOVERY.txt` with installation instructions;
+- the recovery mod when full-health recovery is selected.
+
+The browser never overwrites the imported source. Installing the generated package is always a separate, explicit step performed by the user.
+
+## Browser support
+
+A current Chromium-based browser such as Chrome, Edge, or Brave provides the best folder-selection and direct-save experience. ZIP import and regular browser downloads are available when the native folder or file-save APIs are not supported.
+
+## Technology
+
+- Next.js 16 and React 19
+- TypeScript
+- Tailwind CSS
+- TanStack Query
+- `sql.js` / SQLite WebAssembly
+- `@zip.js/zip.js`
+- Web Workers
+- Web Crypto API
+
+## Local development
+
+Requirements:
+
+- Node.js 24
+- npm
+
+Install dependencies:
 
 ```powershell
-npm install
+npm ci
+```
+
+Run the web application in PowerShell:
+
+```powershell
+$env:ZSM_RUNTIME_MODE = "web"
 npm run dev
 ```
 
-Abra [http://localhost:3000](http://localhost:3000). Na primeira execução, a aplicação procura saves em `%USERPROFILE%\Zomboid\Saves` e grava configuração/metadados em `%USERPROFILE%\ZomboidSaveManager`.
+Then open [http://localhost:3000](http://localhost:3000).
 
-## Marco implementado
+For Bash-compatible shells:
 
-- Next.js App Router, TypeScript estrito, Tailwind e componentes shadcn-style;
-- Departure Mono oficial v1.500 local;
-- configuração local em JSON;
-- detecção dinâmica de modos e saves;
-- seleção de save;
-- backup manual atômico com validação de tamanho, arquivos e diretórios;
-- histórico de backups;
-- lock de operação e IDs opacos no cliente.
-- scanner compatível com `localPlayers` e `networkPlayers`;
-- recuperação transacional de personagens mortos;
-- backup completo e backup separado de `players.db` antes da recuperação;
-- rollback do banco para o estado pré-recuperação;
-- Recovery Mod de execução única para restaurar HP e remover ferimentos e infecção.
+```bash
+ZSM_RUNTIME_MODE=web npm run dev
+```
 
-## Recuperar um personagem
-
-1. Feche o Project Zomboid.
-2. Selecione o save na dashboard e abra **Personagens**.
-3. Escolha o personagem morto e o modo de recuperação.
-4. Confirme a operação. A aplicação cria e valida os backups antes da transação.
-5. Para o modo saudável, habilite **Zomboid Save Manager Recovery** no menu Mods e carregue exatamente o save indicado.
-
-O mod confere mundo e nome do personagem, executa uma única vez e é desativado pela aplicação após o marcador de conclusão aparecer em `console.txt`.
-
-O launcher geral e a tela de restore de backups completos continuam reservados para os próximos marcos. O rollback da recuperação já está disponível e restaura o `players.db` preservado antes da operação.
-
-## Modo web privado
-
-- Selecione a pasta individual da partida ou importe um ZIP.
-- O save precisa conter `players.db` e `map_ver.bin`.
-- `sql.js` executa a validação e recuperação em WebAssembly dentro de um worker.
-- Backups e recuperações são exportados como novos ZIPs; o original nunca é alterado.
-- Nenhum arquivo, nome de personagem ou histórico é enviado ou persistido na Vercel.
-
-## Verificar
+## Verification
 
 ```powershell
 npm run typecheck
@@ -57,3 +118,9 @@ npm run lint
 npm test
 npm run build
 ```
+
+## Deployment
+
+The project is deployed on Vercel. Vercel environments are detected automatically, so the browser-only runtime is enabled without additional environment variables.
+
+Repository: [github.com/luizlima12/zomboid-save-manager](https://github.com/luizlima12/zomboid-save-manager)
