@@ -10,4 +10,5 @@ export interface CharacterRecord extends Character {
 export interface PlayersTableSchema {
   table: SupportedPlayersTable;
   source: Character["source"];
+  columns: string[];
 }

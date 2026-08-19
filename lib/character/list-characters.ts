@@ -48,6 +48,7 @@ export async function listCharacters(
       name: character.name,
       dead: character.dead,
       source: character.source,
+      position: character.position,
     }));
     return {
       saveId,

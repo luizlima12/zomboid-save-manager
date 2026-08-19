@@ -25,12 +25,15 @@ try {
       id INTEGER PRIMARY KEY,
       name TEXT NOT NULL,
       isDead INTEGER NOT NULL,
+      x REAL,
+      y REAL,
+      z REAL,
       data BLOB
     );
-    INSERT INTO localPlayers (name, isDead, data)
+    INSERT INTO localPlayers (name, isDead, x, y, z, data)
     VALUES
-      ('Luiz Felipe', 1, X'010203'),
-      ('Mara Voss', 0, X'040506');
+      ('Luiz Felipe', 1, 10635, 9954, 0, X'010203'),
+      ('Mara Voss', 0, 11822.5, 6892, 1, X'040506');
   `);
 } finally {
   database.close();

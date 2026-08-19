@@ -1,11 +1,14 @@
 import initSqlJs, { type Database, type SqlJsStatic } from "sql.js";
 
+import { readCharacterPosition } from "@/lib/character/character-position";
 import type { Character } from "@/lib/types";
 
 const TABLES = [
   { name: "localPlayers", source: "local" },
   { name: "networkPlayers", source: "hosted" },
 ] as const;
+
+type SupportedWebTable = (typeof TABLES)[number] & { columns: string[] };
 
 let sqlPromise: Promise<SqlJsStatic> | undefined;
 
@@ -45,8 +48,8 @@ function supportedTables(database: Database) {
       "SELECT name FROM sqlite_master WHERE type = 'table'",
     ).filter((value): value is string => typeof value === "string"),
   );
-  const supported = TABLES.filter((table) => {
-    if (!existing.has(table.name)) return false;
+  const supported = TABLES.map((table) => {
+    if (!existing.has(table.name)) return undefined;
     const columns = new Set(
       namedColumnValues(
         database,
@@ -54,14 +57,22 @@ function supportedTables(database: Database) {
         "name",
       ).filter((value): value is string => typeof value === "string"),
     );
-    return columns.has("name") && columns.has("isDead");
-  });
+    return columns.has("name") && columns.has("isDead")
+      ? { ...table, columns: [...columns] }
+      : undefined;
+  }).filter((table): table is SupportedWebTable => Boolean(table));
   if (supported.length === 0) {
     throw new Error(
       "Esta versão de players.db não possui um schema compatível com a recuperação.",
     );
   }
   return supported;
+}
+
+function coordinateSelect(columns: string[]): string {
+  return (["x", "y", "z"] as const)
+    .map((column) => (columns.includes(column) ? column : `NULL AS ${column}`))
+    .join(", ");
 }
 
 function listCharactersFromDatabase(
@@ -71,7 +82,7 @@ function listCharactersFromDatabase(
   assertIntegrity(database);
   return supportedTables(database).flatMap((table) => {
     const result = database.exec(
-      `SELECT rowid, name, isDead FROM ${table.name} ORDER BY rowid`,
+      `SELECT rowid, name, isDead, ${coordinateSelect(table.columns)} FROM ${table.name} ORDER BY rowid`,
     )[0];
     return (result?.values ?? []).map((row) => {
       const rowId = Number(row[0]);
@@ -85,6 +96,7 @@ function listCharactersFromDatabase(
         name,
         dead: Number(row[2]) !== 0,
         source: table.source,
+        position: readCharacterPosition(row[3], row[4], row[5]),
       } satisfies Character;
     });
   });

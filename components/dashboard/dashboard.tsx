@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 
+import { CharacterProfileCard } from "@/components/character/character-profile-card";
 import { apiRequest } from "@/components/dashboard/api-client";
 import {
   BrandIcon,
@@ -35,7 +36,12 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { AppConfig, BackupMetadata, ZomboidSave } from "@/lib/types";
+import type {
+  AppConfig,
+  BackupMetadata,
+  CharacterScan,
+  ZomboidSave,
+} from "@/lib/types";
 import { cn, formatBytes, formatDate, formatRelativeDate } from "@/lib/utils";
 
 type View =
@@ -563,6 +569,15 @@ export function Dashboard() {
     enabled: Boolean(selectedSave),
   });
   const backups = backupsQuery.data ?? [];
+  const charactersQuery = useQuery({
+    queryKey: ["characters", selectedSave?.id],
+    queryFn: () =>
+      apiRequest<CharacterScan>(
+        `/api/characters?saveId=${encodeURIComponent(selectedSave!.id)}`,
+      ),
+    enabled: Boolean(selectedSave),
+    retry: false,
+  });
 
   const backupMutation = useMutation({
     mutationFn: ({ saveId, label }: { saveId: string; label?: string }) =>
@@ -740,7 +755,47 @@ export function Dashboard() {
 
               <div>
                 <div className="mb-5 flex items-center justify-between gap-4">
-                  <SectionLabel code="02">Saves disponíveis</SectionLabel>
+                  <SectionLabel code="02">Sobreviventes neste save</SectionLabel>
+                  <button onClick={() => navigate("characters")} className="text-[10px] uppercase tracking-[0.12em] text-primary hover:underline">
+                    Abrir personagens
+                  </button>
+                </div>
+                {charactersQuery.isLoading ? (
+                  <Card>
+                    <CardContent className="flex min-h-40 items-center justify-center gap-3 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                      <RefreshCw className="size-4 animate-spin text-primary" /> Lendo players.db...
+                    </CardContent>
+                  </Card>
+                ) : charactersQuery.data?.characters.length ? (
+                  <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {charactersQuery.data.characters.map((character) => (
+                      <CharacterProfileCard
+                        key={character.id}
+                        character={character}
+                        action={
+                          character.dead ? (
+                            <Button variant="danger" onClick={() => navigate("characters")}>
+                              <Skull className="size-4" /> Abrir recovery
+                            </Button>
+                          ) : undefined
+                        }
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="py-10 text-center text-[11px] text-muted-foreground">
+                      {charactersQuery.error instanceof Error
+                        ? charactersQuery.error.message
+                        : "Nenhum personagem encontrado neste save."}
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              <div>
+                <div className="mb-5 flex items-center justify-between gap-4">
+                  <SectionLabel code="03">Saves disponíveis</SectionLabel>
                   <button onClick={() => navigate("saves")} className="text-[10px] uppercase tracking-[0.12em] text-primary hover:underline">
                     Ver todos [{saves.length}]
                   </button>
@@ -750,7 +805,7 @@ export function Dashboard() {
 
               <div>
                 <div className="mb-5 flex items-center justify-between gap-4">
-                  <SectionLabel code="03">Backups recentes</SectionLabel>
+                  <SectionLabel code="04">Backups recentes</SectionLabel>
                   <button onClick={() => navigate("backups")} className="text-[10px] uppercase tracking-[0.12em] text-primary hover:underline">
                     Abrir histórico
                   </button>

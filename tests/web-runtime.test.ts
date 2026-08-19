@@ -43,9 +43,13 @@ describe("hosted web runtime", () => {
         id INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
         isDead INTEGER NOT NULL,
+        x REAL,
+        y REAL,
+        z REAL,
         data BLOB
       );
-      INSERT INTO localPlayers (name, isDead) VALUES ('Web Survivor', 1);
+      INSERT INTO localPlayers (name, isDead, x, y, z)
+      VALUES ('Web Survivor', 1, 10635.5, 9954, 0);
     `);
     database.close();
     databaseBytes = new Uint8Array(await readFile(databasePath));
@@ -87,7 +91,11 @@ describe("hosted web runtime", () => {
       "web-save-test",
       wasmPath,
     );
-    expect(characters[0]).toMatchObject({ name: "Web Survivor", dead: true });
+    expect(characters[0]).toMatchObject({
+      name: "Web Survivor",
+      dead: true,
+      position: { x: 10635.5, y: 9954, z: 0 },
+    });
 
     const recovered = await recoverPlayersDatabase(
       databaseBytes,
@@ -100,6 +108,30 @@ describe("hosted web runtime", () => {
     await expect(
       scanPlayersDatabase(recovered.database, "web-save-test", wasmPath),
     ).resolves.toMatchObject([{ dead: false }]);
+  });
+
+  it("keeps scanning saves that do not expose position columns", async () => {
+    const legacyPath = path.join(testRoot, "legacy-players.db");
+    const legacyDatabase = new DatabaseSync(legacyPath);
+    legacyDatabase.exec(`
+      CREATE TABLE localPlayers (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        isDead INTEGER NOT NULL,
+        data BLOB
+      );
+      INSERT INTO localPlayers (name, isDead) VALUES ('Legacy Survivor', 0);
+    `);
+    legacyDatabase.close();
+
+    const [character] = await scanPlayersDatabase(
+      new Uint8Array(await readFile(legacyPath)),
+      "legacy-save-test",
+      wasmPath,
+    );
+
+    expect(character).toMatchObject({ name: "Legacy Survivor", dead: false });
+    expect(character.position).toBeUndefined();
   });
 
   it("imports a complete folder and rejects multiple saves", async () => {

@@ -41,10 +41,13 @@ describe("character recovery", () => {
         id INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
         isDead INTEGER NOT NULL,
+        x REAL,
+        y REAL,
+        z REAL,
         data BLOB
       );
-      INSERT INTO localPlayers (name, isDead, data)
-      VALUES ('Luiz Felipe', 1, X'010203');
+      INSERT INTO localPlayers (name, isDead, x, y, z, data)
+      VALUES ('Luiz Felipe', 1, 10635, 9954.25, 0, X'010203');
     `);
     database.close();
 
@@ -84,6 +87,17 @@ describe("character recovery", () => {
   }
 
   const quietAudit = vi.fn(async () => undefined);
+
+  it("reports the character state and last saved position", async () => {
+    const { character } = await getTarget();
+
+    expect(character).toMatchObject({
+      name: "Luiz Felipe",
+      dead: true,
+      source: "local",
+      position: { x: 10635, y: 9954.25, z: 0 },
+    });
+  });
 
   it("revives a dead character only after both backups", async () => {
     const { save, character } = await getTarget();

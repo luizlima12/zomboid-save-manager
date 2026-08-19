@@ -12,10 +12,10 @@ import {
   RefreshCw,
   RotateCcw,
   ShieldCheck,
-  Skull,
   UserRound,
 } from "lucide-react";
 
+import { CharacterProfileCard } from "@/components/character/character-profile-card";
 import { apiRequest } from "@/components/dashboard/api-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -201,60 +201,6 @@ function RecoveryProcess({
             </Button>
           </div>
         )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function CharacterCard({
-  character,
-  disabled,
-  onRecover,
-}: {
-  character: Character;
-  disabled: boolean;
-  onRecover: (character: Character) => void;
-}) {
-  return (
-    <Card className={cn("min-w-0", character.dead && "border-danger/35")}>
-      <CardContent className="flex h-full flex-col p-0">
-        <div className="technical-grid flex min-h-40 items-start justify-between gap-4 p-6">
-          <div className="min-w-0">
-            <p className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-              Subject · {character.source === "local" ? "LOCAL" : "HOSTED"}
-            </p>
-            <h3 className="mt-5 break-words text-lg uppercase tracking-[0.1em]">
-              {character.name}
-            </h3>
-          </div>
-          <div
-            className={cn(
-              "grid size-10 shrink-0 place-items-center border",
-              character.dead
-                ? "border-danger/35 bg-danger/5 text-danger"
-                : "border-success/35 bg-success/5 text-success",
-            )}
-          >
-            {character.dead ? <Skull className="size-5" /> : <HeartPulse className="size-5" />}
-          </div>
-        </div>
-        <div className="flex flex-1 flex-col justify-between gap-5 border-t border-border p-5">
-          <div>
-            <p className="text-[9px] uppercase tracking-[0.16em] text-muted-foreground">Status</p>
-            <p className={cn("mt-2 text-[11px] uppercase", character.dead ? "text-danger" : "text-success")}>
-              {character.dead ? "☠ DECEASED" : "● ALIVE"}
-            </p>
-          </div>
-          {character.dead ? (
-            <Button variant="danger" onClick={() => onRecover(character)} disabled={disabled}>
-              <HeartPulse className="size-4" /> Reviver personagem
-            </Button>
-          ) : (
-            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-              <Check className="size-3.5 text-success" /> Nenhuma recuperação necessária
-            </div>
-          )}
-        </div>
       </CardContent>
     </Card>
   );
@@ -489,11 +435,20 @@ export function RecoveryPanel({
           ) : (
             <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2 xl:grid-cols-3">
               {charactersQuery.data?.characters.map((character) => (
-                <CharacterCard
+                <CharacterProfileCard
                   key={character.id}
                   character={character}
-                  disabled={recoveryBlocked}
-                  onRecover={openRecovery}
+                  action={
+                    character.dead ? (
+                      <Button
+                        variant="danger"
+                        onClick={() => openRecovery(character)}
+                        disabled={recoveryBlocked}
+                      >
+                        <HeartPulse className="size-4" /> Reviver personagem
+                      </Button>
+                    ) : undefined
+                  }
                 />
               ))}
             </div>

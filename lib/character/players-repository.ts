@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 
 import { AppError } from "@/lib/errors";
+import { readCharacterPosition } from "@/lib/character/character-position";
 import type {
   CharacterRecord,
   PlayersTableSchema,
@@ -20,9 +21,12 @@ interface CharacterRow {
   rowId: number;
   name: unknown;
   isDead: unknown;
+  x: unknown;
+  y: unknown;
+  z: unknown;
 }
 
-const TABLE_CANDIDATES: ReadonlyArray<PlayersTableSchema> = [
+const TABLE_CANDIDATES: ReadonlyArray<Omit<PlayersTableSchema, "columns">> = [
   { table: "localPlayers", source: "local" },
   { table: "networkPlayers", source: "hosted" },
 ];
@@ -78,7 +82,7 @@ export class PlayersRepository {
       ).map((row) => row.name),
     );
 
-    const schemas = TABLE_CANDIDATES.filter((candidate) => {
+    const schemas = TABLE_CANDIDATES.map((candidate) => {
       if (!existingTables.has(candidate.table)) return false;
       const columns = new Set(
         (
@@ -87,8 +91,10 @@ export class PlayersRepository {
             .all() as unknown as TableInfoRow[]
         ).map((row) => row.name),
       );
-      return columns.has("name") && columns.has("isDead");
-    });
+      return columns.has("name") && columns.has("isDead")
+        ? { ...candidate, columns: [...columns] }
+        : undefined;
+    }).filter((schema): schema is PlayersTableSchema => Boolean(schema));
 
     if (schemas.length === 0) {
       throw new AppError(
@@ -176,7 +182,7 @@ export class PlayersRepository {
   ): CharacterRecord[] {
     const rows = this.database
       .prepare(
-        `SELECT rowid AS rowId, name, isDead FROM ${schema.table} ORDER BY rowid`,
+        `SELECT rowid AS rowId, name, isDead, ${this.coordinateSelect(schema)} FROM ${schema.table} ORDER BY rowid`,
       )
       .all() as unknown as CharacterRow[];
 
@@ -189,8 +195,17 @@ export class PlayersRepository {
           : `CHARACTER_${row.rowId}`,
       dead: Boolean(row.isDead),
       source: schema.source,
+      position: readCharacterPosition(row.x, row.y, row.z),
       table: schema.table,
       rowId: row.rowId,
     }));
+  }
+
+  private coordinateSelect(schema: PlayersTableSchema): string {
+    return (["x", "y", "z"] as const)
+      .map((column) =>
+        schema.columns.includes(column) ? column : `NULL AS ${column}`,
+      )
+      .join(", ");
   }
 }

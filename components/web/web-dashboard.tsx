@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 
+import { CharacterProfileCard } from "@/components/character/character-profile-card";
 import { Button } from "@/components/ui/button";
 import {
   BrandIcon,
@@ -449,36 +450,26 @@ export function WebDashboard() {
     return (
       <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2 xl:grid-cols-3">
         {workspace?.characters.map((character) => (
-          <Card key={character.id} className={cn(character.dead && "border-danger/35")}>
-            <CardContent className="p-0">
-              <div className="technical-grid flex min-h-40 items-start justify-between p-6">
-                <div>
-                  <p className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground">Subject · {character.source}</p>
-                  <h3 className="mt-5 text-lg uppercase tracking-[0.1em]">{character.name}</h3>
-                </div>
-                {character.dead ? <Skull className="size-5 text-danger" /> : <HeartPulse className="size-5 text-success" />}
-              </div>
-              <div className="border-t border-border p-5">
-                <p className={cn("text-[11px] uppercase", character.dead ? "text-danger" : "text-success")}>
-                  {character.dead ? "☠ DECEASED" : "● ALIVE"}
-                </p>
-                {character.dead && (
-                  <Button
-                    className="mt-5 w-full"
-                    variant="danger"
-                    disabled={busy}
-                    onClick={() => {
-                      setSelectedCharacter(character);
-                      setRecoveryMode("full-health");
-                      setConfirmed(false);
-                    }}
-                  >
-                    <HeartPulse className="size-4" /> Criar pacote de recuperação
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <CharacterProfileCard
+            key={character.id}
+            character={character}
+            action={
+              character.dead ? (
+                <Button
+                  className="w-full"
+                  variant="danger"
+                  disabled={busy}
+                  onClick={() => {
+                    setSelectedCharacter(character);
+                    setRecoveryMode("full-health");
+                    setConfirmed(false);
+                  }}
+                >
+                  <HeartPulse className="size-4" /> Criar pacote de recuperação
+                </Button>
+              ) : undefined
+            }
+          />
         ))}
       </div>
     );

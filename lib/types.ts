@@ -72,12 +72,19 @@ export type RecoveryStatus =
   | "failed"
   | "rolled-back";
 
+export interface CharacterPosition {
+  x: number;
+  y: number;
+  z: number;
+}
+
 export interface Character {
   id: string;
   saveId: string;
   name: string;
   dead: boolean;
   source: "local" | "hosted";
+  position?: CharacterPosition;
 }
 
 export interface CharacterScan {
